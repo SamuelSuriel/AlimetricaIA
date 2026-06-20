@@ -1,52 +1,73 @@
 import { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Session } from "@supabase/supabase-js";
 
 import { supabase } from "./services/supabase";
 import SplashScreen from "./components/SplashScreen";
 import WelcomeScreen from "./components/WelcomeScreen";
+import LoginScreen from "./components/LoginScreen";
+import RegisterScreen from "./components/RegisterScreen";
 import BottomNavigation, { TabName } from "./components/BottomNavigation";
 
 // Pantallas del flujo de la app
 type Screen =
   | "splash"
   | "welcome"
+  | "login"
+  | "register"
   | "dashboard"
   | "diario"
   | "ia"
   | "perfil";
 
 export default function App() {
+  const [session, setSession] = useState<Session | null>(null);
   const [currentScreen, setCurrentScreen] = useState<Screen>("splash");
   const [activeTab, setActiveTab] = useState<TabName>("dashboard");
+  const [isAppReady, setIsAppReady] = useState(false);
 
-  // Verificar conexión con Supabase al iniciar
+  // Manejo de Sesión Global de Supabase
   useEffect(() => {
-    verificarConexion();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        setCurrentScreen("dashboard");
+      }
+      setIsAppReady(true);
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) {
+        setCurrentScreen("dashboard");
+      } else {
+        // Si el usuario cierra sesión, devolverlo al login
+        setCurrentScreen("login");
+      }
+    });
   }, []);
 
-  async function verificarConexion() {
-    console.log("Verificando conexión con Supabase...");
-    const { data, error } = await supabase
-      .from("catalogo_alimentos")
-      .select("count");
-
-    if (error) {
-      console.log("Error de conexión:", error.message);
-    } else {
-      console.log("✅ Conexión exitosa con Supabase");
-    }
-  }
-
   const handleSplashFinish = () => {
-    setCurrentScreen("welcome");
+    // Si ya cargó la sesión y hay usuario, ir a dashboard. Si no, a welcome.
+    if (session) {
+      setCurrentScreen("dashboard");
+    } else {
+      setCurrentScreen("welcome");
+    }
   };
 
   const handleGetStarted = () => {
-    // TODO: En el futuro, navegar a Login/Registro
-    setCurrentScreen("dashboard");
-    setActiveTab("dashboard");
+    setCurrentScreen("login");
+  };
+
+  const handleGoToRegister = () => {
+    setCurrentScreen("register");
+  };
+
+  const handleGoToLogin = () => {
+    setCurrentScreen("login");
   };
 
   const handleTabChange = (tab: TabName) => {
@@ -54,9 +75,13 @@ export default function App() {
     setCurrentScreen(tab);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   // --- Renderizado por pantalla ---
 
-  if (currentScreen === "splash") {
+  if (currentScreen === "splash" || !isAppReady) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
 
@@ -64,7 +89,15 @@ export default function App() {
     return <WelcomeScreen onGetStarted={handleGetStarted} />;
   }
 
-  // --- Pantallas principales con navegación inferior ---
+  if (currentScreen === "login") {
+    return <LoginScreen onGoToRegister={handleGoToRegister} />;
+  }
+
+  if (currentScreen === "register") {
+    return <RegisterScreen onGoToLogin={handleGoToLogin} />;
+  }
+
+  // --- Pantallas principales con navegación inferior (Protegidas) ---
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
@@ -101,11 +134,18 @@ export default function App() {
           />
         )}
         {activeTab === "perfil" && (
-          <PlaceholderScreen
-            icon="person-outline"
-            title="Mi Perfil"
-            description="Gestiona tu perfil biométrico: peso, estatura, edad y objetivos."
-          />
+          <View style={styles.profileContainer}>
+            <PlaceholderScreen
+              icon="person-outline"
+              title="Mi Perfil"
+              description="Gestiona tu perfil biométrico: peso, estatura, edad y objetivos."
+            />
+            
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={20} color="#FF6B6B" />
+              <Text style={styles.logoutText}>Cerrar Sesión</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -157,14 +197,35 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 30,
+  },
+  profileContainer: {
+    flex: 1,
+    justifyContent: "space-between",
+    paddingBottom: 30,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF0F0',
+    paddingVertical: 15,
+    marginHorizontal: 30,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFE0E0',
+  },
+  logoutText: {
+    color: '#FF6B6B',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 8,
   },
   // Placeholder styles
   placeholderContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
   },
   placeholderIconCircle: {
     width: 100,
