@@ -8,13 +8,17 @@ interface RegisterScreenProps {
 }
 
 export default function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleRegister() {
-    if (!email || !password || !confirmPassword) {
+    if (!nombre || !apellido || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Por favor completa todos los campos.');
       return;
     }
@@ -33,6 +37,12 @@ export default function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          nombre,
+          apellido,
+        }
+      }
     });
 
     if (error) {
@@ -59,6 +69,25 @@ export default function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
 
       <View style={styles.form}>
         <View style={styles.inputContainer}>
+          <Ionicons name="person-outline" size={20} color="#636E72" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre"
+            value={nombre}
+            onChangeText={setNombre}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Ionicons name="person-outline" size={20} color="#636E72" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Apellido"
+            value={apellido}
+            onChangeText={setApellido}
+          />
+        </View>
+        <View style={styles.inputContainer}>
           <Ionicons name="mail-outline" size={20} color="#636E72" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
@@ -77,8 +106,11 @@ export default function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             placeholder="Contraseña"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secureTextEntry={!showPassword}
           />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#636E72" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.inputContainer}>
@@ -88,8 +120,11 @@ export default function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
             placeholder="Confirmar contraseña"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            secureTextEntry
+            secureTextEntry={!showConfirmPassword}
           />
+          <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
+            <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#636E72" />
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity 
@@ -171,6 +206,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#2D3436',
+  },
+  eyeIcon: {
+    padding: 10,
   },
   button: {
     backgroundColor: '#00B894',

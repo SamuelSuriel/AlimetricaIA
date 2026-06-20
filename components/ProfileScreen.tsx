@@ -13,6 +13,16 @@ export default function ProfileScreen({ session, onLogout }: ProfileScreenProps)
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+
+  const nombre = session.user.user_metadata?.nombre || 'Usuario';
+  const apellido = session.user.user_metadata?.apellido || '';
+  const email = session.user.email;
+
   // Estados del formulario
   const [dia, setDia] = useState('');
   const [mes, setMes] = useState('');
@@ -103,6 +113,33 @@ export default function ProfileScreen({ session, onLogout }: ProfileScreenProps)
     }
   }
 
+  async function handleUpdatePassword() {
+    if (!newPassword || !confirmNewPassword) {
+      Alert.alert('Atención', 'Ingresa la nueva contraseña en ambos campos.');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    setUpdatingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setUpdatingPassword(false);
+
+    if (error) {
+      Alert.alert('Error', error.message);
+    } else {
+      Alert.alert('Éxito', 'Tu contraseña ha sido actualizada.');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    }
+  }
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -114,6 +151,17 @@ export default function ProfileScreen({ session, onLogout }: ProfileScreenProps)
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       
+      {/* Cabecera de Usuario */}
+      <View style={styles.userHeader}>
+        <View style={styles.avatarCircle}>
+          <Text style={styles.avatarText}>
+            {(nombre.charAt(0) + apellido.charAt(0)).toUpperCase()}
+          </Text>
+        </View>
+        <Text style={styles.userName}>{nombre} {apellido}</Text>
+        <Text style={styles.userEmail}>{email}</Text>
+      </View>
+
       {/* Sección Fecha de Nacimiento */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Fecha de Nacimiento</Text>
@@ -219,6 +267,48 @@ export default function ProfileScreen({ session, onLogout }: ProfileScreenProps)
         )}
       </TouchableOpacity>
 
+      {/* Sección Cambiar Contraseña */}
+      <View style={[styles.section, styles.passwordSection]}>
+        <Text style={styles.sectionTitle}>Cambiar Contraseña</Text>
+        <View style={styles.inputContainer}>
+          <Ionicons name="lock-closed-outline" size={20} color="#636E72" style={styles.inputIcon} />
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Nueva contraseña"
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry={!showNewPassword}
+          />
+          <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeIcon}>
+            <Ionicons name={showNewPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#636E72" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.inputContainer}>
+          <Ionicons name="lock-closed-outline" size={20} color="#636E72" style={styles.inputIcon} />
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="Confirmar nueva contraseña"
+            value={confirmNewPassword}
+            onChangeText={setConfirmNewPassword}
+            secureTextEntry={!showConfirmNewPassword}
+          />
+          <TouchableOpacity onPress={() => setShowConfirmNewPassword(!showConfirmNewPassword)} style={styles.eyeIcon}>
+            <Ionicons name={showConfirmNewPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#636E72" />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity 
+          style={[styles.updatePwdButton, updatingPassword && styles.buttonDisabled]} 
+          onPress={handleUpdatePassword}
+          disabled={updatingPassword}
+        >
+          {updatingPassword ? (
+            <ActivityIndicator color="#00B894" />
+          ) : (
+            <Text style={styles.updatePwdButtonText}>Actualizar Contraseña</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
       {/* Botón Cerrar Sesión */}
       <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
         <Ionicons name="log-out-outline" size={20} color="#FF6B6B" />
@@ -242,6 +332,37 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 20,
     paddingBottom: 40,
+  },
+  userHeader: {
+    alignItems: 'center',
+    marginBottom: 30,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E9ECEF',
+  },
+  avatarCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#E6F8F3',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  avatarText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#00B894',
+  },
+  userName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2D3436',
+    marginBottom: 4,
+  },
+  userEmail: {
+    fontSize: 15,
+    color: '#636E72',
   },
   section: {
     marginBottom: 24,
@@ -372,5 +493,46 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     marginLeft: 8,
+  },
+  passwordSection: {
+    marginTop: 10,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#E9ECEF',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginBottom: 12,
+    paddingHorizontal: 15,
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  passwordInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#2D3436',
+  },
+  eyeIcon: {
+    padding: 10,
+  },
+  updatePwdButton: {
+    backgroundColor: '#E6F8F3',
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  updatePwdButtonText: {
+    color: '#00B894',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

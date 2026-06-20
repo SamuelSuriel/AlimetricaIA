@@ -10,6 +10,7 @@ interface LoginScreenProps {
 export default function LoginScreen({ onGoToRegister }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
@@ -60,8 +61,11 @@ export default function LoginScreen({ onGoToRegister }: LoginScreenProps) {
             placeholder="Contraseña"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secureTextEntry={!showPassword}
           />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#636E72" />
+          </TouchableOpacity>
         </View>
 
         <TouchableOpacity 
@@ -143,6 +147,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#2D3436',
+  },
+  eyeIcon: {
+    padding: 10,
   },
   button: {
     backgroundColor: '#00B894',
