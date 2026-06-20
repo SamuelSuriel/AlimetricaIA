@@ -9,6 +9,7 @@ import SplashScreen from "./components/SplashScreen";
 import WelcomeScreen from "./components/WelcomeScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
+import ProfileScreen from "./components/ProfileScreen";
 import BottomNavigation, { TabName } from "./components/BottomNavigation";
 
 // Pantallas del flujo de la app
@@ -134,18 +135,7 @@ export default function App() {
           />
         )}
         {activeTab === "perfil" && (
-          <View style={styles.profileContainer}>
-            <PlaceholderScreen
-              icon="person-outline"
-              title="Mi Perfil"
-              description="Gestiona tu perfil biométrico: peso, estatura, edad y objetivos."
-            />
-            
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={20} color="#FF6B6B" />
-              <Text style={styles.logoutText}>Cerrar Sesión</Text>
-            </TouchableOpacity>
-          </View>
+          <ProfileScreen session={session!} onLogout={handleLogout} />
         )}
       </View>
 
