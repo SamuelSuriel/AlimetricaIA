@@ -10,6 +10,7 @@ import WelcomeScreen from "./components/WelcomeScreen";
 import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ProfileScreen from "./components/ProfileScreen";
+import DiaryScreen from "./components/diary/DiaryScreen";
 import BottomNavigation, { TabName } from "./components/BottomNavigation";
 
 // Pantallas del flujo de la app
@@ -121,11 +122,7 @@ export default function App() {
           />
         )}
         {activeTab === "diario" && (
-          <PlaceholderScreen
-            icon="restaurant-outline"
-            title="Diario de Comidas"
-            description="Registra tus comidas del día: Desayuno, Almuerzo, Cena y Merienda."
-          />
+          <DiaryScreen session={session!} />
         )}
         {activeTab === "ia" && (
           <PlaceholderScreen
