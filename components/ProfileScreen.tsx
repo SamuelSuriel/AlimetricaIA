@@ -91,7 +91,7 @@ export default function ProfileScreen({ session, onLogout }: ProfileScreenProps)
 
     setSaving(true);
     try {
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('perfiles_biometricos')
         .upsert({
           user_id: session.user.id,
@@ -103,8 +103,43 @@ export default function ProfileScreen({ session, onLogout }: ProfileScreenProps)
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' });
 
-      if (error) throw error;
-      Alert.alert('¡Listo!', 'Tu perfil ha sido guardado correctamente.');
+      if (profileError) throw profileError;
+
+      // Calcular y guardar nuevas metas nutricionales basadas en el perfil actualizado
+      const age = new Date().getFullYear() - y;
+      const w = parseFloat(peso);
+      const h = parseInt(estatura, 10);
+      
+      let bmr = 10 * w + 6.25 * h - 5 * age;
+      bmr += sexo === 'Masculino' ? 5 : -161;
+      
+      let tdee = bmr * 1.55;
+      let calObjetivo = tdee;
+      let pPct = 0.3, cPct = 0.4, fPct = 0.3;
+
+      if (objetivo === 'Bajar de peso') {
+        calObjetivo = tdee - 500;
+        pPct = 0.4; cPct = 0.3; fPct = 0.3;
+      } else if (objetivo === 'Ganar masa muscular') {
+        calObjetivo = tdee + 500;
+        pPct = 0.3; cPct = 0.45; fPct = 0.25;
+      }
+
+      const todayISO = new Date().toISOString().split('T')[0];
+      const { error: metasError } = await supabase
+        .from('metas_nutricionales')
+        .insert({
+          user_id: session.user.id,
+          fecha_inicio: todayISO,
+          calorias_objetivo: Math.round(calObjetivo),
+          proteinas_objetivo_g: Math.round((calObjetivo * pPct) / 4),
+          carbohidratos_objetivo_g: Math.round((calObjetivo * cPct) / 4),
+          grasas_objetivo_g: Math.round((calObjetivo * fPct) / 9),
+        });
+
+      if (metasError) throw metasError;
+
+      Alert.alert('¡Listo!', 'Tu perfil y tus metas nutricionales han sido actualizados.');
     } catch (error: any) {
       console.error(error);
       Alert.alert('Error al guardar', error.message);

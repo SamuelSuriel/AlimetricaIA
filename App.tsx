@@ -11,6 +11,7 @@ import LoginScreen from "./components/LoginScreen";
 import RegisterScreen from "./components/RegisterScreen";
 import ProfileScreen from "./components/ProfileScreen";
 import DiaryScreen from "./components/diary/DiaryScreen";
+import DashboardScreen from "./components/dashboard/DashboardScreen";
 import BottomNavigation, { TabName } from "./components/BottomNavigation";
 
 // Pantallas del flujo de la app
@@ -115,11 +116,7 @@ export default function App() {
 
       <View style={styles.content}>
         {activeTab === "dashboard" && (
-          <PlaceholderScreen
-            icon="bar-chart-outline"
-            title="Dashboard"
-            description="Aquí verás tu resumen nutricional diario, progreso contra metas y alertas de la IA."
-          />
+          <DashboardScreen session={session!} />
         )}
         {activeTab === "diario" && (
           <DiaryScreen session={session!} />
