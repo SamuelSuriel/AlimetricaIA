@@ -125,7 +125,8 @@ export default function ProfileScreen({ session, onLogout }: ProfileScreenProps)
         pPct = 0.3; cPct = 0.45; fPct = 0.25;
       }
 
-      const todayISO = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      const todayISO = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
       const { error: metasError } = await supabase
         .from('metas_nutricionales')
         .insert({

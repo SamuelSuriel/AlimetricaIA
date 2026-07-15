@@ -38,7 +38,16 @@ export default function DashboardScreen({ session }: DashboardScreenProps) {
   const [recomendacion, setRecomendacion] = useState<RecomendacionIA | null>(null);
 
   const nombre = session.user.user_metadata?.nombre || 'Usuario';
-  const todayISO = new Date().toISOString().split('T')[0];
+
+  function getLocalDateISO(): string {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = (now.getMonth() + 1).toString().padStart(2, '0');
+    const d = now.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  const todayISO = getLocalDateISO();
 
   const loadData = useCallback(async () => {
     try {
