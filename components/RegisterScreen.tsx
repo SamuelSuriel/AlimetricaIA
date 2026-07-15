@@ -34,7 +34,7 @@ export default function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -47,12 +47,16 @@ export default function RegisterScreen({ onGoToLogin }: RegisterScreenProps) {
 
     if (error) {
       Alert.alert('Error de registro', error.message);
-    } else {
+    } else if (!data.session) {
+      // If email confirmation is required, Supabase won't return a session
       Alert.alert(
         '¡Registro exitoso!',
-        'Revisa tu bandeja de entrada para confirmar tu correo electrónico antes de iniciar sesión.',
+        'Por favor verifica tu correo electrónico antes de iniciar sesión.',
         [{ text: 'OK', onPress: onGoToLogin }]
       );
+    } else {
+      // If auto-logged in, do nothing; App.tsx onAuthStateChange will handle navigation to onboarding
+      console.log('Registration successful, auto-logged in.');
     }
     setLoading(false);
   }

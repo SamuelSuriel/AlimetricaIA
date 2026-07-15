@@ -12,6 +12,7 @@ import RegisterScreen from "./components/RegisterScreen";
 import ProfileScreen from "./components/ProfileScreen";
 import DiaryScreen from "./components/diary/DiaryScreen";
 import DashboardScreen from "./components/dashboard/DashboardScreen";
+import OnboardingScreen from "./components/OnboardingScreen";
 import BottomNavigation, { TabName } from "./components/BottomNavigation";
 
 // Pantallas del flujo de la app
@@ -20,6 +21,7 @@ type Screen =
   | "welcome"
   | "login"
   | "register"
+  | "onboarding"
   | "dashboard"
   | "diario"
   | "ia"
@@ -31,34 +33,51 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabName>("dashboard");
   const [isAppReady, setIsAppReady] = useState(false);
 
+  // Verificar si el usuario tiene perfil biométrico completo
+  async function checkBiometricProfile(userId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('perfiles_biometricos')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+    return !error && !!data;
+  }
+
   // Manejo de Sesión Global de Supabase
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       if (session) {
-        setCurrentScreen("dashboard");
+        const hasProfile = await checkBiometricProfile(session.user.id);
+        setCurrentScreen(hasProfile ? "dashboard" : "onboarding");
       }
       setIsAppReady(true);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       if (session) {
-        setCurrentScreen("dashboard");
+        const hasProfile = await checkBiometricProfile(session.user.id);
+        setCurrentScreen(hasProfile ? "dashboard" : "onboarding");
       } else {
-        // Si el usuario cierra sesión, devolverlo al login
         setCurrentScreen("login");
       }
     });
   }, []);
 
   const handleSplashFinish = () => {
-    // Si ya cargó la sesión y hay usuario, ir a dashboard. Si no, a welcome.
     if (session) {
-      setCurrentScreen("dashboard");
+      checkBiometricProfile(session.user.id).then((hasProfile) => {
+        setCurrentScreen(hasProfile ? "dashboard" : "onboarding");
+      });
     } else {
       setCurrentScreen("welcome");
     }
+  };
+
+  const handleOnboardingComplete = () => {
+    setCurrentScreen("dashboard");
+    setActiveTab("dashboard");
   };
 
   const handleGetStarted = () => {
@@ -98,6 +117,10 @@ export default function App() {
 
   if (currentScreen === "register") {
     return <RegisterScreen onGoToLogin={handleGoToLogin} />;
+  }
+
+  if (currentScreen === "onboarding" && session) {
+    return <OnboardingScreen session={session} onComplete={handleOnboardingComplete} />;
   }
 
   // --- Pantallas principales con navegación inferior (Protegidas) ---
