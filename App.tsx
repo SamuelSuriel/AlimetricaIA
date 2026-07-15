@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, View } from "react-native";
 import { Session } from "@supabase/supabase-js";
 
 import { supabase } from "./services/supabase";
@@ -12,6 +11,7 @@ import RegisterScreen from "./components/RegisterScreen";
 import ProfileScreen from "./components/ProfileScreen";
 import DiaryScreen from "./components/diary/DiaryScreen";
 import DashboardScreen from "./components/dashboard/DashboardScreen";
+import AIScreen from "./components/ia/AIScreen";
 import BottomNavigation, { TabName } from "./components/BottomNavigation";
 
 // Pantallas del flujo de la app
@@ -122,11 +122,7 @@ export default function App() {
           <DiaryScreen session={session!} />
         )}
         {activeTab === "ia" && (
-          <PlaceholderScreen
-            icon="sparkles-outline"
-            title="Análisis IA"
-            description="Recibe recomendaciones personalizadas basadas en tus patrones alimenticios."
-          />
+          <AIScreen session={session!} />
         )}
         {activeTab === "perfil" && (
           <ProfileScreen session={session!} onLogout={handleLogout} />
@@ -134,28 +130,6 @@ export default function App() {
       </View>
 
       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
-    </View>
-  );
-}
-
-// Componente placeholder temporal para las pantallas en desarrollo
-interface PlaceholderScreenProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  description: string;
-}
-
-function PlaceholderScreen({ icon, title, description }: PlaceholderScreenProps) {
-  return (
-    <View style={styles.placeholderContainer}>
-      <View style={styles.placeholderIconCircle}>
-        <Ionicons name={icon} size={48} color="#00B894" />
-      </View>
-      <Text style={styles.placeholderTitle}>{title}</Text>
-      <Text style={styles.placeholderDescription}>{description}</Text>
-      <View style={styles.comingSoonBadge}>
-        <Text style={styles.comingSoonText}>En desarrollo</Text>
-      </View>
     </View>
   );
 }
@@ -181,67 +155,5 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  profileContainer: {
-    flex: 1,
-    justifyContent: "space-between",
-    paddingBottom: 30,
-  },
-  logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF0F0',
-    paddingVertical: 15,
-    marginHorizontal: 30,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FFE0E0',
-  },
-  logoutText: {
-    color: '#FF6B6B',
-    fontWeight: '600',
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  // Placeholder styles
-  placeholderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 30,
-  },
-  placeholderIconCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: "#F0FFF4",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  placeholderTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#2D3436",
-    marginBottom: 12,
-  },
-  placeholderDescription: {
-    fontSize: 15,
-    color: "#636E72",
-    textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 24,
-  },
-  comingSoonBadge: {
-    backgroundColor: "#00B894",
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  comingSoonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
   },
 });
