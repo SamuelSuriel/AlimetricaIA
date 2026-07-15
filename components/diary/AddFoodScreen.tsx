@@ -61,6 +61,9 @@ export default function AddFoodScreen({ onSelectFood, onBack }: AddFoodScreenPro
       case 'Cereal': return 'leaf-outline';
       case 'Fruta': return 'nutrition-outline';
       case 'Lacteo': return 'water-outline';
+      case 'Verdura': return 'flower-outline';
+      case 'Legumbre': return 'grid-outline';
+      case 'Grasa': return 'flame-outline';
       default: return 'ellipse-outline';
     }
   }
@@ -71,6 +74,9 @@ export default function AddFoodScreen({ onSelectFood, onBack }: AddFoodScreenPro
       case 'Cereal': return '#FDCB6E';
       case 'Fruta': return '#00B894';
       case 'Lacteo': return '#74B9FF';
+      case 'Verdura': return '#00CEC9';
+      case 'Legumbre': return '#A29BFE';
+      case 'Grasa': return '#FD79A8';
       default: return '#636E72';
     }
   }
